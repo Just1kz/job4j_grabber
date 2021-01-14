@@ -74,7 +74,7 @@ public class AlertRabbit implements AutoCloseable {
     }
 
     public void getSettingsFileProperties() {
-        try (BufferedReader read = new BufferedReader(new FileReader(".\\src\\main\\resources\\rabbit.properties"))) {
+        try (BufferedReader read = new BufferedReader(new FileReader("./src/main/resources/rabbit.properties"))) {
             read.lines()
                     .filter(x -> x.length() != 0 && !x.startsWith("#"))
                     .map(line -> line.split("="))
