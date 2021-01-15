@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -67,6 +68,18 @@ public class SqlRuParse {
         for (LocalDateTime zx : output) {
             System.out.println(zx);
         }
+    }
+
+    public static void downloadDetails() throws IOException {
+        Document docX = Jsoup.connect("https://www.sql.ru/forum/1325330/lidy-be-fe-senior-cistemnye-analitiki-qa-i-devops-moskva-do-200t").get();
+        Elements rowX = docX.select(".msgTable");
+        String description = rowX.first().select(".msgBody").get(1).html();
+        String name = rowX.first().select(".messageHeader").text();
+        String date = rowX.last().select(".msgFooter").text();
+        date = date.substring(0, date.indexOf('[') - 1);
+        System.out.println(description);
+        System.out.println(name);
+        System.out.println(date);
     }
 
     public static Month createMonth(String s) {
