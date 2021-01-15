@@ -16,27 +16,21 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class AlertRabbit implements AutoCloseable {
-    private final int interval;
-    private final String url;
-    private final String login;
-    private final String password;
+    private  int interval;
+    private  String url;
+    private  String login;
+    private  String password;
 
     private Connection connection;
-    private final Map<String, String> values = new HashMap<String, String>();
 
     public AlertRabbit() {
-        getSettingsFileProperties();
-        this.interval = Integer.parseInt(values.get("rabbit.interval"));
-        this.url = values.get("url");
-        this.login = values.get("login");
-        this.password = values.get("password");
-        if (url == null
-                || login == null
-                || password == null
-                || interval == 0) {
-            throw new IllegalArgumentException("You set not all parameters in file rabbit.properties."
-                    + " Check your file.");
-        }
+    }
+
+    public AlertRabbit(int interval, String url, String login, String password) {
+        this.interval = interval;
+        this.url = url;
+        this.login = login;
+        this.password = password;
     }
 
     private Connection initConnection() throws Exception {
@@ -46,7 +40,13 @@ public class AlertRabbit implements AutoCloseable {
     }
 
     public static void main(String[] args) throws Exception {
-        AlertRabbit alertRabbit = new AlertRabbit();
+        Map<String, String> values = getSettingsFileProperties();
+        AlertRabbit alertRabbit = new AlertRabbit(
+                Integer.parseInt(values.get("rabbit.interval")),
+                values.get("url"),
+                values.get("login"),
+                values.get("password")
+        );
         try (Connection connection = alertRabbit.initConnection()) {
             alertRabbit.createTable(connection);
             try {
@@ -73,15 +73,19 @@ public class AlertRabbit implements AutoCloseable {
         }
     }
 
-    public void getSettingsFileProperties() {
+     public static Map<String, String> getSettingsFileProperties() {
+         Map<String, String> zxc = new HashMap<String, String>();
+         //InputStream read = getClass().getClassLoader().getResourceAsStream("./src/main/resources/rabbit.properties")
+         //BufferedReader read = new BufferedReader(new FileReader("./src/main/resources/rabbit.properties"))
         try (BufferedReader read = new BufferedReader(new FileReader("./src/main/resources/rabbit.properties"))) {
             read.lines()
                     .filter(x -> x.length() != 0 && !x.startsWith("#"))
                     .map(line -> line.split("="))
-                    .forEach(x -> values.put(x[0], x[1]));
+                    .forEach(x -> zxc.put(x[0], x[1]));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return zxc;
     }
 
     public void createTable(Connection connection) throws Exception {
@@ -115,7 +119,14 @@ public class AlertRabbit implements AutoCloseable {
 
         public void addJob(String date, String time)
                 throws Exception {
-            try (Connection connection = new AlertRabbit().initConnection()) {
+            Map<String, String> values = getSettingsFileProperties();
+            AlertRabbit alertRabbit = new AlertRabbit(
+                    Integer.parseInt(values.get("rabbit.interval")),
+                    values.get("url"),
+                    values.get("login"),
+                    values.get("password")
+            );
+            try (Connection connection = alertRabbit.initConnection()) {
                 try (Statement statement = connection.createStatement()) {
                     String sql = String.format(
                             "insert into rabbit(created_date, created_time) values (%s, %s);",
