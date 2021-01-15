@@ -7,16 +7,16 @@ import java.util.Objects;
 public class Post {
     private String name;
     private String body;
-    private URL url;
+    private String link;
     private LocalDateTime dateTime;
 
-    public Post() {
-    }
+//    public Post() {
+//    }
 
-    public Post(String name, String body, URL url, LocalDateTime dateTime) {
+    public Post(String name, String body, String url, LocalDateTime dateTime) {
         this.name = name;
         this.body = body;
-        this.url = url;
+        this.link = url;
         this.dateTime = dateTime;
     }
 
@@ -28,8 +28,8 @@ public class Post {
         return body;
     }
 
-    public URL getUrl() {
-        return url;
+    public String getLink() {
+        return link;
     }
 
     public LocalDateTime getDateTime() {
@@ -47,13 +47,13 @@ public class Post {
         Post post = (Post) o;
         return Objects.equals(name, post.name)
                 && Objects.equals(body, post.body)
-                && Objects.equals(url, post.url)
+                && Objects.equals(link, post.link)
                 && Objects.equals(dateTime, post.dateTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, body, url, dateTime);
+        return Objects.hash(name, body, link, dateTime);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class Post {
                 + body
                 + '\''
                 + ", url="
-                + url
+                + link
                 + ", dateTime="
                 + dateTime
                 + '}';

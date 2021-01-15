@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.job4j.model.Post;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -12,72 +13,55 @@ import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
 
-public class SqlRuParse {
+public class SqlRuParse implements Parse {
     public static void main(String[] args) throws Exception {
-        List<String> list = new ArrayList<>();
-        List<String> input = new ArrayList<>();
-        List<LocalDateTime> output = new ArrayList<>();
-        int year;
-        String month;
-        int day;
-        int hours;
-        int minutes;
-        LocalDateTime rsl;
-        LocalDate localDate = LocalDate.now();
-        LocalTime localTime;
+        List<Post> rsl = new ArrayList<>();
 
         for (int i = 1; i <= 5; i++) {
-            Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers/" + i).get();
-            Elements row = doc.select(".postslisttopic");
-            Elements row2 = doc.select(".altCol");
-            for (Element td : row) {
-                Element href = td.child(0);
-                System.out.println(href.attr("href"));
-                System.out.println(href.text());
-            }
-            for (Element td : row2) {
-                list.add(td.text());
-            }
-            for (int x = 1; x < list.size(); x = x + 2) {
-                input.add(list.get(x));
-            }
-            for (String x : input) {
-                String[] z = x.split(", ");
-                String[] time = z[1].split(":");
-                hours = Integer.parseInt(time[0]);
-                minutes = Integer.parseInt(time[1]);
-                localTime = LocalTime.of(hours, minutes);
-                String[] date = z[0].split(" ");
-                if (date.length == 3) {
-                    year = 2000 + Integer.parseInt(date[2]);
-                    month = date[1];
-                    day = Integer.parseInt(date[0]);
-                    rsl = LocalDateTime.of(year, Objects.requireNonNull(createMonth(month)), day, hours, minutes);
-                } else {
-                    if (z[0].equals("сегодня")) {
-                        localDate = LocalDate.now();
-                    }
-                    if (z[0].equals("вчера")) {
-                        localDate = LocalDate.now().minusDays(1);
-                    }
-                    rsl = LocalDateTime.of(localDate, localTime);
-                }
-                output.add(rsl);
-            }
+            String url = "https://www.sql.ru/forum/job-offers/";
+            SqlRuParse rslX = new SqlRuParse();
+            rsl.addAll(rslX.list(url + i));
         }
-        for (LocalDateTime zx : output) {
-            System.out.println(zx);
+
+        for (Post p : rsl) {
+            System.out.println(p);
         }
     }
 
-    public static void downloadDetails() throws IOException {
+    public static LocalDateTime createDate(String input) {
+        LocalDateTime rsl;
+            String[] z = input.split(", ");
+            String[] time = z[1].split(":");
+            int hours = Integer.parseInt(time[0]);
+            int minutes = Integer.parseInt(time[1]);
+            LocalTime localTime = LocalTime.of(hours, minutes);
+            String[] date = z[0].split(" ");
+            if (date.length == 3) {
+                int year = 2000 + Integer.parseInt(date[2]);
+                String month = date[1];
+                int day = Integer.parseInt(date[0]);
+                rsl = LocalDateTime.of(year, Objects.requireNonNull(createMonth(month)), day, hours, minutes);
+            } else {
+                LocalDate localDate = LocalDate.now();
+                if (z[0].equals("сегодня")) {
+                    localDate = LocalDate.now();
+                }
+                if (z[0].equals("вчера")) {
+                    localDate = LocalDate.now().minusDays(1);
+                }
+                rsl = LocalDateTime.of(localDate, localTime);
+            }
+        return rsl;
+    }
+
+    public static void detail() throws IOException {
         Document docX = Jsoup.connect("https://www.sql.ru/forum/1325330/lidy-be-fe-senior-cistemnye-analitiki-qa-i-devops-moskva-do-200t").get();
         Elements rowX = docX.select(".msgTable");
-        String description = rowX.first().select(".msgBody").get(1).html();
+        String body = rowX.first().select(".msgBody").get(1).html();
         String name = rowX.first().select(".messageHeader").text();
         String date = rowX.last().select(".msgFooter").text();
         date = date.substring(0, date.indexOf('[') - 1);
-        System.out.println(description);
+        System.out.println(body);
         System.out.println(name);
         System.out.println(date);
     }
@@ -120,5 +104,44 @@ public class SqlRuParse {
             return Month.DECEMBER;
         }
         return null;
+    }
+
+    //Метод list загружает список всех постов.
+    @Override
+    public List<Post> list(String link) throws Exception {
+        List<Post> rsl = new ArrayList<>();
+        Document doc = Jsoup.connect(link).get();
+        Elements row = doc.select(".postslisttopic");
+        for (Element td : row) {
+            Element href = td.child(0);
+            rsl.add(detail(href.attr("href")));
+        }
+        return rsl;
+    }
+
+    //Метод detail загружает детали одного поста.
+    @Override
+    public Post detail(String link) throws Exception {
+        Document docX = Jsoup.connect(link).get();
+        Elements rowX = docX.select(".msgTable");
+        String body = rowX.first().select(".msgBody").get(1).html();
+        body = body.replace("<br>", " ");
+        body = body.replace("<li>", " ");
+        body = body.replace("</li>", " ");
+        body = body.replace("<ul>", " ");
+        body = body.replace("</ul>", " ");
+        body = body.replace("<b>", " ");
+        body = body.replace("</b>", " ");
+        if (body.contains("<table border")) {
+            body = body.substring(0, body.indexOf("<table border"));
+        }
+        if (body.contains("<a href")) {
+            body = body.substring(0, body.indexOf("<a href"));
+        }
+        String name = rowX.first().select(".messageHeader").text();
+        String date = rowX.last().select(".msgFooter").text();
+        date = date.substring(0, date.indexOf('[') - 1);
+        LocalDateTime dateTime = createDate(date);
+        return new Post(name, body, link, dateTime);
     }
 }
