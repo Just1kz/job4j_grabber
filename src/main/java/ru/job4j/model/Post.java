@@ -6,11 +6,16 @@ import java.util.Objects;
 
 public class Post {
     private String name;
+    private String body;
     private URL url;
     private LocalDateTime dateTime;
 
-    public Post(String name, URL url, LocalDateTime dateTime) {
+    public Post() {
+    }
+
+    public Post(String name, String body, URL url, LocalDateTime dateTime) {
         this.name = name;
+        this.body = body;
         this.url = url;
         this.dateTime = dateTime;
     }
@@ -19,24 +24,16 @@ public class Post {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getBody() {
+        return body;
     }
 
     public URL getUrl() {
         return url;
     }
 
-    public void setUrl(URL url) {
-        this.url = url;
-    }
-
     public LocalDateTime getDateTime() {
         return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
     }
 
     @Override
@@ -49,13 +46,14 @@ public class Post {
         }
         Post post = (Post) o;
         return Objects.equals(name, post.name)
+                && Objects.equals(body, post.body)
                 && Objects.equals(url, post.url)
                 && Objects.equals(dateTime, post.dateTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, url, dateTime);
+        return Objects.hash(name, body, url, dateTime);
     }
 
     @Override
@@ -64,9 +62,12 @@ public class Post {
                 + "name='"
                 + name
                 + '\''
-                +  ", url="
+                + ", body='"
+                + body
+                + '\''
+                + ", url="
                 + url
-                + ", LDT="
+                + ", dateTime="
                 + dateTime
                 + '}';
     }
