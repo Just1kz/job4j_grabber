@@ -168,6 +168,10 @@ public class SQLStore implements Store, AutoCloseable {
                 );
     }
 
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
     public static void main(String[] args) throws Exception {
         SQLStore sqlStore = new SQLStore();
         sqlStore.initProperties();
