@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Properties;
 
-public class SQLStore implements Store , AutoCloseable {
+public class SQLStore implements Store, AutoCloseable {
 
     private Connection cnn;
 

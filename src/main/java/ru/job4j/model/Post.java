@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Post {
-    private String name;
-    private String body;
-    private String link;
-    private LocalDateTime dateTime;
+    private final String name;
+    private final String body;
+    private final String link;
+    private final LocalDateTime dateTime;
 
     public Post(String name, String body, String url, LocalDateTime dateTime) {
         this.name = name;
