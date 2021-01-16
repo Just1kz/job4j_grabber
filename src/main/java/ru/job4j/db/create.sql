@@ -1,11 +1,11 @@
 DROP DATABASE IF EXISTS grabber;
 CREATE DATABASE grabber;
 
-create table grabber.public.post (
+create table if not exists grabber.public.post (
         id serial primary key,
-        name text,
-        body text unique,
+        name text unique not null,
+        body text,
         link text,
-        created varchar(255)
+        created_dateWithTime text
 )
 

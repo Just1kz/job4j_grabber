@@ -95,11 +95,19 @@ public class SqlRuParse implements Parse {
         body = body.replace("</ul>", " ");
         body = body.replace("<b>", " ");
         body = body.replace("</b>", " ");
+        body = body.replace("</u> ", " ");
+        body = body.replace("<b>", " ");
+        body = body.replace("[/b]", " ");
+        body = body.replace("<font color=\"blue\">", " ");
+        body = body.replace("</font> ", " ");
         if (body.contains("<table border")) {
             body = body.substring(0, body.indexOf("<table border"));
         }
         if (body.contains("<a href")) {
             body = body.substring(0, body.indexOf("<a href"));
+        }
+        if (body.contains("<table width")) {
+            body = body.substring(0, body.indexOf("<table width"));
         }
         String name = rowX.first().select(".messageHeader").text();
         String date = rowX.last().select(".msgFooter").text();
