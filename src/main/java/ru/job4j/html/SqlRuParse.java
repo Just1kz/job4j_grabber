@@ -55,43 +55,20 @@ public class SqlRuParse implements Parse {
     }
 
     public static Month createMonth(String s) {
-        if (s.equals("янв")) {
-            return Month.JANUARY;
-        }
-        if (s.equals("фев")) {
-            return Month.FEBRUARY;
-        }
-        if (s.equals("мар")) {
-            return Month.MARCH;
-        }
-        if (s.equals("апр")) {
-            return Month.APRIL;
-        }
-        if (s.equals("май")) {
-            return Month.MAY;
-        }
-        if (s.equals("июн")) {
-            return Month.JUNE;
-        }
-        if (s.equals("июл")) {
-            return Month.JULY;
-        }
-        if (s.equals("авг")) {
-            return Month.AUGUST;
-        }
-        if (s.equals("сен")) {
-            return Month.SEPTEMBER;
-        }
-        if (s.equals("окт")) {
-            return Month.OCTOBER;
-        }
-        if (s.equals("ноя")) {
-            return Month.NOVEMBER;
-        }
-        if (s.equals("дек")) {
-            return Month.DECEMBER;
-        }
-        return null;
+        Map<String, Month> rsl = new HashMap<>();
+        rsl.put("янв", Month.JANUARY);
+        rsl.put("фев", Month.FEBRUARY);
+        rsl.put("мар", Month.MARCH);
+        rsl.put("апр", Month.APRIL);
+        rsl.put("май", Month.MAY);
+        rsl.put("июн", Month.JUNE);
+        rsl.put("июл", Month.JULY);
+        rsl.put("авг", Month.AUGUST);
+        rsl.put("сен", Month.SEPTEMBER);
+        rsl.put("окт", Month.OCTOBER);
+        rsl.put("ноя", Month.NOVEMBER);
+        rsl.put("дек", Month.DECEMBER);
+        return rsl.get(s) != null ? rsl.get(s) : null;
     }
 
     //Метод list загружает список всех постов.
