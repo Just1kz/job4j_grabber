@@ -3,13 +3,11 @@ package ru.job4j.quartz;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStream;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -17,37 +15,37 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 public class AlertRabbit implements AutoCloseable {
     private  int interval;
-    private  String url;
-    private  String login;
-    private  String password;
 
     private Connection connection;
 
     public AlertRabbit() {
+        initConnection();
     }
 
-    public AlertRabbit(int interval, String url, String login, String password) {
-        this.interval = interval;
-        this.url = url;
-        this.login = login;
-        this.password = password;
+    public AlertRabbit(Connection connection) {
+        this.connection = connection;
     }
 
-    private Connection initConnection() throws Exception {
-        Class.forName("org.postgresql.Driver");
-        this.connection = DriverManager.getConnection(url, login, password);
-        return this.connection;
+    public void initConnection() {
+        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream(
+                "rabbit.properties")) {
+            Properties config = new Properties();
+            config.load(in);
+            Class.forName(config.getProperty("driver-class-name"));
+            connection = DriverManager.getConnection(
+                    config.getProperty("url"),
+                    config.getProperty("login"),
+                    config.getProperty("password")
+            );
+            this.interval =  Integer.parseInt(config.getProperty("rabbit.interval"));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        Map<String, String> values = getSettingsFileProperties();
-        AlertRabbit alertRabbit = new AlertRabbit(
-                Integer.parseInt(values.get("rabbit.interval")),
-                values.get("url"),
-                values.get("login"),
-                values.get("password")
-        );
-        try (Connection connection = alertRabbit.initConnection()) {
+        AlertRabbit alertRabbit = new AlertRabbit();
+        try (Connection connection = alertRabbit.connection) {
             alertRabbit.createTable(connection);
             try {
                 Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
@@ -73,28 +71,13 @@ public class AlertRabbit implements AutoCloseable {
         }
     }
 
-     public static Map<String, String> getSettingsFileProperties() {
-         Map<String, String> zxc = new HashMap<String, String>();
-         //InputStream read = getClass().getClassLoader().getResourceAsStream("./src/main/resources/rabbit.properties")
-         //BufferedReader read = new BufferedReader(new FileReader("./src/main/resources/rabbit.properties"))
-        try (BufferedReader read = new BufferedReader(new FileReader("./src/main/resources/rabbit.properties"))) {
-            read.lines()
-                    .filter(x -> x.length() != 0 && !x.startsWith("#"))
-                    .map(line -> line.split("="))
-                    .forEach(x -> zxc.put(x[0], x[1]));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return zxc;
-    }
-
     public void createTable(Connection connection) throws Exception {
             try (Statement statement = connection.createStatement()) {
                 String sql = String.format(
                         "create table if not exists %s(%s, %s);",
                         "rabbit",
-                        "created_date date",
-                        "created_time time"
+                        "created_date text",
+                        "created_time text"
                 );
                 statement.execute(sql);
             }
@@ -113,28 +96,29 @@ public class AlertRabbit implements AutoCloseable {
             SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
             SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm:ss");
             Date date = new Date();
-            addJob("date '" + formatDate.format(date) + "'",
-                    "time '" + formatTime.format(date) + "'");
+//            addJob("date '" + formatDate.format(date) + "'",
+//                    "time '" + formatTime.format(date) + "'");
+            addJob(formatDate.format(date), formatTime.format(date));
         }
 
         public void addJob(String date, String time)
                 throws Exception {
-            Map<String, String> values = getSettingsFileProperties();
-            AlertRabbit alertRabbit = new AlertRabbit(
-                    Integer.parseInt(values.get("rabbit.interval")),
-                    values.get("url"),
-                    values.get("login"),
-                    values.get("password")
-            );
-            try (Connection connection = alertRabbit.initConnection()) {
-                try (Statement statement = connection.createStatement()) {
-                    String sql = String.format(
-                            "insert into rabbit(created_date, created_time) values (%s, %s);",
-                            date,
-                            time
-                    );
-                    statement.execute(sql);
-                }
+            AlertRabbit alertRabbit = new AlertRabbit();
+//            try (Connection connection = alertRabbit.connection) {
+//                try (Statement statement = connection.createStatement()) {
+//                    String sql = String.format(
+//                            "insert into rabbit(created_date, created_time) values (%s, %s);",
+//                            date,
+//                            time
+//                    );
+//                    statement.execute(sql);
+//                }
+//            }
+            try (PreparedStatement ps = alertRabbit.connection.prepareStatement(
+                    "insert into rabbit(created_date, created_time) values(?, ?)")) {
+                ps.setString(1, date);
+                ps.setString(2, time);
+                ps.execute();
             }
         }
 

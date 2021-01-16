@@ -10,9 +10,6 @@ public class Post {
     private String link;
     private LocalDateTime dateTime;
 
-//    public Post() {
-//    }
-
     public Post(String name, String body, String url, LocalDateTime dateTime) {
         this.name = name;
         this.body = body;
