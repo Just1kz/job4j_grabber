@@ -26,6 +26,7 @@ public class Grabber implements Grab {
     public Store store() {
         SQLStore store = new SQLStore();
         store.setProperties(cfg);
+        store.initConnection();
         return store;
     }
 
@@ -83,7 +84,6 @@ public class Grabber implements Grab {
             }
             System.out.println("Вывод объявлений по Java");
             System.out.println(store.getNameJava().toString());
-            /* TODO impl logic */
         }
     }
 
